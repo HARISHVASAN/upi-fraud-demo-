@@ -13,11 +13,12 @@ run_simulation = st.sidebar.checkbox("Run Simulator", value=False)
 placeholder = st.empty()
 transactions = []
 
-backend_url = "https://upi-fraud-demo.onrender.com/"  # replace with your actual backend URL
+# ✅ Replace this with your actual Render backend URL
+backend_url = "https://upi-fraud-demo.onrender.com/"
 
 while True:
     if run_simulation:
-        # Generate random transaction
+        # Normal random transaction
         locations = ['Chennai', 'Mumbai', 'Delhi']
         merchants = ['Amazon', 'Flipkart', 'Zomato']
 
@@ -26,6 +27,14 @@ while True:
             "location": random.choice(locations),
             "merchant": random.choice(merchants)
         }
+
+        # 🚨 Force fraud every 10 transactions
+        if len(transactions) % 10 == 0 and len(transactions) != 0:
+            data = {
+                "amount": 9999,  # suspiciously high amount
+                "location": "Delhi",
+                "merchant": "UnknownMerchant"
+            }
 
         # Call backend
         try:
@@ -38,12 +47,13 @@ while True:
             time.sleep(2)
             continue
 
-        # Display table
+        # Display latest transactions table
         with placeholder.container():
-            st.subheader("📊 Latest Transactions")
-            st.dataframe(transactions[-20:][::-1])  # show last 20, newest first
+            st.subheader("📊 Latest Transactions (newest first)")
+            st.dataframe(transactions[-20:][::-1])
 
-        time.sleep(2)  # simulate delay
+        time.sleep(2)  # simulate delay between transactions
+
     else:
-        st.info("✅ Enable 'Run Simulator' to see real-time data")
+        st.info("✅ Enable 'Run Simulator' to see real-time transactions")
         time.sleep(2)
