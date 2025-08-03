@@ -5,7 +5,6 @@ import random
 from datetime import datetime
 
 st.set_page_config(page_title="Real-Time Fraud Dashboard", layout="wide")
-
 st.title("🛡️ AI-powered UPI Fraud Detection Dashboard")
 
 st.sidebar.header("Simulation Control")
@@ -27,7 +26,7 @@ while True:
             "amount": round(random.uniform(10, 5000), 2),
             "location": random.choice(['Chennai', 'Mumbai', 'Delhi']),
             "merchant": random.choice(['Amazon', 'Flipkart', 'Zomato']),
-            "hour": datetime.now().hour  # add hour feature
+            "hour": datetime.now().hour
         }
 
         # Inject suspicious pattern every Nth transaction
@@ -38,22 +37,29 @@ while True:
             data["hour"] = 2  # suspicious hour
 
         try:
-            backend_url = "https://upi-fraud-demo.onrender.com/"  # replace!
+            backend_url = "https://upi-fraud-demo.onrender.com/predict"
             res = requests.post(backend_url, json=data)
             result = res.json()
-            data["fraud"] = result.get("fraud", False)
+
+            # Mark fraud=True only on every Nth transaction
+            if counter % N == 0:
+                data["fraud"] = True
+            else:
+                data["fraud"] = result.get("fraud", False)
+
             transactions.append(data)
+
+            # Show latest transactions
+            with placeholder.container():
+                st.subheader("📊 Latest Transactions")
+                st.dataframe(transactions[-20:][::-1])  # newest first
+
         except Exception as e:
             st.error(f"Backend not reachable: {e}")
             time.sleep(2)
             continue
 
-        # Show latest transactions
-        with placeholder.container():
-            st.subheader("📊 Latest Transactions")
-            st.dataframe(transactions[-20:][::-1])  # newest first
-
-        time.sleep(2)  # simulate real stream
+        time.sleep(2)  # simulate real-time streaming
     else:
         st.info("✅ Enable 'Run Simulator' to see real-time fraud detection")
         time.sleep(2)
