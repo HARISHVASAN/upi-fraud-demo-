@@ -38,7 +38,7 @@ while True:
             data["hour"] = 2  # suspicious hour
 
         try:
-            backend_url = "https://<your-backend>.onrender.com/predict"  # replace!
+            backend_url = "https://upi-fraud-demo.onrender.com/"  # replace!
             res = requests.post(backend_url, json=data)
             result = res.json()
             data["fraud"] = result.get("fraud", False)
