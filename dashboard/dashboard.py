@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import time
+import random
 
 st.set_page_config(page_title="Real-Time Fraud Dashboard", layout="wide")
 
@@ -10,13 +11,13 @@ st.sidebar.header("Simulation Control")
 run_simulation = st.sidebar.checkbox("Run Simulator", value=False)
 
 placeholder = st.empty()
-
 transactions = []
+
+backend_url = "https://upi-fraud-demo.onrender.com/"  # replace with your actual backend URL
 
 while True:
     if run_simulation:
-        # generate random transaction
-        import random
+        # Generate random transaction
         locations = ['Chennai', 'Mumbai', 'Delhi']
         merchants = ['Amazon', 'Flipkart', 'Zomato']
 
@@ -26,21 +27,21 @@ while True:
             "merchant": random.choice(merchants)
         }
 
-        # call backend
+        # Call backend
         try:
-            res = requests.post("http://127.0.0.1:8000/predict", json=data, timeout=2)
+            res = requests.post(backend_url, json=data)
             result = res.json()
             data["fraud"] = result.get("fraud", False)
             transactions.append(data)
         except Exception as e:
-            st.error(f"Backend not reachable: {e}")
+            st.error(f"❌ Backend not reachable: {e}")
             time.sleep(2)
             continue
 
-        # display table
+        # Display table
         with placeholder.container():
             st.subheader("📊 Latest Transactions")
-            df = st.dataframe(transactions[-20:][::-1])  # show last 20, newest first
+            st.dataframe(transactions[-20:][::-1])  # show last 20, newest first
 
         time.sleep(2)  # simulate delay
     else:
