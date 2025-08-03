@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import time
 import random
+from datetime import datetime
 
 st.set_page_config(page_title="Real-Time Fraud Dashboard", layout="wide")
 
@@ -13,47 +14,46 @@ run_simulation = st.sidebar.checkbox("Run Simulator", value=False)
 placeholder = st.empty()
 transactions = []
 
-# ✅ Replace this with your actual Render backend URL
-backend_url = "https://upi-fraud-demo.onrender.com/"
+# Counter to inject fraud every N transactions
+counter = 0
+N = 8  # every 8th transaction will look suspicious
 
 while True:
     if run_simulation:
-        # Normal random transaction
-        locations = ['Chennai', 'Mumbai', 'Delhi']
-        merchants = ['Amazon', 'Flipkart', 'Zomato']
+        counter += 1
 
+        # normally safe transaction
         data = {
             "amount": round(random.uniform(10, 5000), 2),
-            "location": random.choice(locations),
-            "merchant": random.choice(merchants)
+            "location": random.choice(['Chennai', 'Mumbai', 'Delhi']),
+            "merchant": random.choice(['Amazon', 'Flipkart', 'Zomato']),
+            "hour": datetime.now().hour  # add hour feature
         }
 
-        # 🚨 Force fraud every 10 transactions
-        if len(transactions) % 10 == 0 and len(transactions) != 0:
-            data = {
-                "amount": 9999,  # suspiciously high amount
-                "location": "Delhi",
-                "merchant": "UnknownMerchant"
-            }
+        # Inject suspicious pattern every Nth transaction
+        if counter % N == 0:
+            data["amount"] = random.choice([8999, 9999])  # unusually large amount
+            data["merchant"] = "UnknownMerchant"
+            data["location"] = "UnknownCity"
+            data["hour"] = 2  # suspicious hour
 
-        # Call backend
         try:
+            backend_url = "https://<your-backend>.onrender.com/predict"  # replace!
             res = requests.post(backend_url, json=data)
             result = res.json()
             data["fraud"] = result.get("fraud", False)
             transactions.append(data)
         except Exception as e:
-            st.error(f"❌ Backend not reachable: {e}")
+            st.error(f"Backend not reachable: {e}")
             time.sleep(2)
             continue
 
-        # Display latest transactions table
+        # Show latest transactions
         with placeholder.container():
-            st.subheader("📊 Latest Transactions (newest first)")
-            st.dataframe(transactions[-20:][::-1])
+            st.subheader("📊 Latest Transactions")
+            st.dataframe(transactions[-20:][::-1])  # newest first
 
-        time.sleep(2)  # simulate delay between transactions
-
+        time.sleep(2)  # simulate real stream
     else:
-        st.info("✅ Enable 'Run Simulator' to see real-time transactions")
+        st.info("✅ Enable 'Run Simulator' to see real-time fraud detection")
         time.sleep(2)
