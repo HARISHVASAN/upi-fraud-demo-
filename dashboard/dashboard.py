@@ -5,7 +5,7 @@ import random
 from datetime import datetime
 
 st.set_page_config(page_title="Real-Time Fraud Dashboard", layout="wide")
-st.title("🛡️ AI-powered UPI Fraud Detection Dashboard")
+st.title(" Digital Payment Fraud Detection System ")
 
 st.sidebar.header("Simulation Control")
 run_simulation = st.sidebar.checkbox("Run Simulator", value=False)
